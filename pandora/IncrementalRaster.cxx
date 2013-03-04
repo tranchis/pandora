@@ -21,7 +21,6 @@
  */
 #include <IncrementalRaster.hxx>
 #include <limits>
-#include <iostream>
 
 namespace Engine 
 {
@@ -92,11 +91,6 @@ bool	IncrementalRaster::operator==( const IncrementalRaster& other ) const
 		if ( i->second != j->second ) return false;
 	}
 	return true;
-}
-
-Point2D<int> IncrementalRaster::getSize() const
-{
-	return _baseRaster->getSize();
 }
 
 }

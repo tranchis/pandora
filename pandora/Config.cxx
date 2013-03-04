@@ -31,7 +31,7 @@
 namespace Engine
 {
 
-Config::Config() : _resultsFile(""), _numSteps(0), _serializeResolution(1)
+Config::Config() : _resultsFile(""), _numSteps(0)
 {
 }
 
@@ -86,8 +86,7 @@ void Config::extractAttribs(TiXmlElement *pRoot)
 	GeneralState::logger().setLogsDir(logsDir);
 
 	pParm = pRoot->FirstChildElement("numSteps");
-	retrieveAttributeMandatory(pParm, "value", _numSteps);
-	retrieveAttributeOptional(pParm, "serializeResolution", _serializeResolution);
+	_numSteps = atoi(pParm->Attribute("value"));
     
     extractParticularAttribs(pRoot);
 }
@@ -106,11 +105,6 @@ void Config::deserialize(const std::string & filename)
 const int & Config::getNumSteps() const
 {
 	return _numSteps;
-}
-
-const int & Config::getSerializeResolution() const
-{
-	return _serializeResolution;
 }
 
 void Config::retrieveAttributeMandatory( TiXmlElement* elem, const std::string & attrName, std::string& value )

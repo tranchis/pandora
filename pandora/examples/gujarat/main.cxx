@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		std::cout << "Loading config file: " << fileName << std::endl;
 		config.deserialize(fileName);
 
-		Engine::Simulation gujaratSim(config.getSize(), config.getNumSteps(), config.getSerializeResolution());
+		Engine::Simulation gujaratSim(config.getSize(), config.getNumSteps());
 		Gujarat::GujaratWorld world( gujaratSim , config);
 	
 		world.init(argc, argv);

@@ -53,7 +53,6 @@ public:
 
 	ChangeIterator		firstChange() const { return _changes.begin(); }
 	ChangeIterator		endOfChanges() const { return _changes.end(); }	
-	Point2D<int> getSize() const;
 
 	bool			operator==( const IncrementalRaster& other ) const;
 

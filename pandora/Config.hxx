@@ -41,8 +41,6 @@ protected:
 	std::string _resultsFile;
 	// number of time steps of the simulation
 	int _numSteps;
-	// number of steps to execute before serializing the state of the simulation
-	int _serializeResolution;
 
 	void retrieveAttributeMandatory( TiXmlElement* elem, const std::string & attrName, std::string& value );
 	void retrieveAttributeOptional( TiXmlElement* elem, const std::string & attrName, std::string& value );
@@ -72,7 +70,6 @@ public:
 	}
 
 	const int & getNumSteps() const;
-	const int & getSerializeResolution() const;
   
 };
 

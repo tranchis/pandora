@@ -34,10 +34,8 @@ class Simulation
 	int _size;
 	int _numSteps;
 	int _localRasterSize;
-	// this attribute defines how many time steps are executed before serializing one.
-	int _serializerResolution;
 public:
-	Simulation( const int & size, const int & numSteps, const int & serializerResolution = 1 );
+	Simulation( const int & size, const int & numSteps );
 	virtual ~Simulation();
 	void init();
 
@@ -46,7 +44,6 @@ public:
 	const int & getSize() const;
 	const int & getNumSteps() const;
 	const int & getLocalRasterSize() const;
-	const int & getSerializerResolution() const;
 }; 
 
 } // namespace Engine

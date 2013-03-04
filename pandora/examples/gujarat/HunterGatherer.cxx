@@ -66,6 +66,14 @@ void HunterGatherer::updateKnowledge()
 	
 	_collectedResources = 0;
 	
+	if(!_sectors.empty())
+	{
+		for ( unsigned k = 0; k < _numSectors; k++ )
+		{
+			delete _sectors.at(k);
+		}		
+	}
+	_sectors.clear();	
 	updateKnowledge( _position, getWorld()->getDynamicRaster(eResources), _sectors);
 	
 }
@@ -77,40 +85,49 @@ void HunterGatherer::updateKnowledge( const Engine::Point2D<int>& agentPos, cons
 	std::stringstream logName;
 	logName << getWorld()->getId() << "_" << getId() << ":updateKnowledge";
 
-	if(_sectors.size()==0)
-	{
-		_sectors.resize(_numSectors);
-		for ( unsigned k = 0; k < _numSectors; k++ )
-		{
-			_sectors[k] = new Sector( getWorldRef());
-		}
-	}
-	else
+//log_INFO(logName.str(), "pos:" << agentPos );	
+	
+	if(!sectors.empty())
 	{
 		for ( unsigned k = 0; k < _numSectors; k++ )
 		{
-			//std::cout << this << "clearing sector: " << k << std::endl;
-			_sectors[k]->clearCells();
-			//std::cout << "DONE!" <<  std::endl;
-		}
+			delete sectors.at(k);
+		}		
 	}
+	sectors.clear();	
+	
 	
 	register int C = ((GujaratConfig)((GujaratWorld*)_world)->getConfig())._cellsPerLowResCellSide;
 	
+	for ( unsigned k = 0; k < _numSectors; k++ )
+	{
+		sectors.push_back( new Sector(*getWorld()) );
+	}
+
+//std::cout << "LR homerange:" << _lowResHomeRange << std::endl;	
+//log_INFO(logName.str(), "LR homerange:" << _lowResHomeRange);	
+
+
 	for ( int x=-_lowResHomeRange; x<=_lowResHomeRange; x++ )
 	{
 		for ( int y=-_lowResHomeRange; y<=_lowResHomeRange; y++ )
 		{
+//log_INFO(logName.str(), "x:" << x << ",y:" << y);
+			
 			int indexSector = GujaratState::sectorsMask(x+_lowResHomeRange,y+_lowResHomeRange);
-
+//log_INFO(logName.str(),"indexSector:" << indexSector);			
 			if ( indexSector == - 1 )
 			{
 				continue;
 			}			
+//log_INFO(logName.str(),"endevant, indexSector:" << indexSector);
 			
 			Engine::Point2D<int> LRpos;
 			((GujaratWorld*)_world)->worldCell2LowResCell( agentPos, LRpos );
 			Engine::Point2D<int> LRxycell(x+LRpos._x,y+LRpos._y);
+
+//log_INFO(logName.str(),"LRpos:" << LRpos << ",LRxycell:" <<LRxycell);
+			
 			
 			Engine::Point2D<int> corners[4]; // 4 corners that bound the world cells belonging to the low res cell
 			corners[0]._x = LRxycell._x*C;
@@ -129,18 +146,25 @@ void HunterGatherer::updateKnowledge( const Engine::Point2D<int>& agentPos, cons
 				!_world->getOverlapBoundaries().isInside(corners[2]) ||
 				!_world->getOverlapBoundaries().isInside(corners[3]))	
 			{
+//log_INFO(logName.str(),"merda pel " << indexSector);				
 				continue;
 			}
-	
+//log_INFO(logName.str(), "adding " << LRxycell << " to sector:"<<  indexSector);							
 			sectors[indexSector]->addCell( LRxycell );
+//log_INFO(logName.str(),"size after adding at " << indexSector << "=" << sectors[indexSector]->numCells());				
 			
 		}//for
 	}//for
 
 	for ( unsigned k = 0; k < _numSectors; k++ )
 	{
+	//	log_INFO(logName.str(),"size(" << k << ")=" << sectors[k]->numCells());
 		sectors[k]->updateFeatures(dataRaster);
+	//	log_INFO(logName.str(),"post size(" << k << ")=" << sectors[k]->numCells());
 	}
+	
+//	log_INFO(logName.str(),"dins? " << sectors.size());				
+	
 	
 	
 }

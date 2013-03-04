@@ -33,7 +33,7 @@ namespace Engine
 {
 
 
-Simulation::Simulation( const int & size, const int & numSteps, const int & serializerResolution ) : _id(-1), _numTasks(1), _size(size), _numSteps(numSteps), _localRasterSize(0), _serializerResolution(serializerResolution)
+Simulation::Simulation( const int & size, const int & numSteps ) : _id(-1), _numTasks(1), _size(size), _numSteps(numSteps), _localRasterSize(0)
 {
 }
 
@@ -84,11 +84,6 @@ const int & Simulation::getNumSteps() const
 const int & Simulation::getLocalRasterSize() const
 {
 	return _localRasterSize;
-}
-
-const int & Simulation::getSerializerResolution() const
-{
-	return _serializerResolution;
 }
 
 } // namespace Engine

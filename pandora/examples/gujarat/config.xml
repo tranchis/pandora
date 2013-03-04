@@ -8,7 +8,7 @@
 	<!-- 1 KCal = 4.184 KJ, Conversion Rate = 1/4.184 -->
 	<energyToCaloriesRate value="0.239006" />
 	<!-- Global agent parameters !-->
-	<socialRange value="199" />
+	<socialRange value="299" />
 	<!-- The horinzontal and vertical length of a LowRes Cell in World Cells !-->
 	<cellsPerLowResCellSide value="160" />
 	<!-- Simulation time scale -->
@@ -40,7 +40,7 @@
 	<!-- * Available Forage Time = # hours a day the forage action takes -->
 	<!-- * forageTimeCost = how much time (in hours) does it cost the agent to exploit a tile resources -->
 	<hunterGatherers 
-		num="100" homeRange="199"	
+		num="100" homeRange="299"	
 		adulthoodAge="15"
 		numSectors="8"
 		cellsPerLowResCellSide="160"
@@ -81,7 +81,7 @@
 	<storeRaster name="distWater" value="no" />
 	<storeRaster name="weightWater" value="no" />
 	<storeRaster name="moisture" value="no" />
-	<storeRaster name="resources" value="yes" />
+	<storeRaster name="resources" value="no" />
 	<storeRaster name="forageActivity" value="no" />
 	<storeRaster name="homeActivity" value="no" />
 	<storeRaster name="farmingActivity" value="no" />
