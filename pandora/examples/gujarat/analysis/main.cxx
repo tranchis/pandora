@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		Engine::SimulationRecord simRecord( 30, false);
+		Engine::SimulationRecord simRecord( 1, false);
 		simRecord.loadHDF5(argv[1], false, true);
 
 		Analysis::AgentResults agentResults(simRecord, argv[2], "HunterGatherer");
@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
 //		agentResults.addAnalysis(new Analysis::AgentHDFtoSHP(argv[4], Engine::Point2D<int>(774000,2623000), 31.5f, "EPSG:24312"));
 
 		agentResults.apply();
-		/*
 
+		/*
 		Analysis::RasterResults rasterResults(simRecord, argv[3], "resources");
 		rasterResults.addAnalysis(new Analysis::RasterMean());
 		rasterResults.addAnalysis(new Analysis::RasterSum());		
