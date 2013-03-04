@@ -27,7 +27,19 @@ enum Rasters
 	eResourceType,
 	eConsecutiveYears,
 	eSectors,
-	eMoisture
+	eMoisture,
+	// LOW RESSOLUTION
+	eLRResources,
+	eLRResourcesFraction,
+	eLRForageActivity,
+	eLRHomeActivity,
+	eLRFarmingActivity,
+	eLRMoisture,
+	eLRWeightWater,
+	eLRPopulation,
+	LRCounterSoilDUNE,
+	LRCounterSoilINTERDUNE,
+	LRCounterSoilWATER
 };
 
 // id's depends on GIS data
@@ -63,11 +75,14 @@ class GujaratWorld : public Engine::World
 	// biomass of a cell at the end of the previous year
 	std::vector<float> _remainingBiomass;
 
+	std::vector<int> _soil2LRCounter;
 	//*********************************************
 	void createRasters();
 	/*! \callgraph 
 	* fill the world with agents
 	*/
+
+	
 	void createAgents();
 
 	void loadFile( const std::string & fileName, const std::string & rasterKey);
@@ -76,11 +91,12 @@ class GujaratWorld : public Engine::World
 	//void updateMoisture();
 	void updateSoilCondition();
 	void updateResources();
-
+	void updateResourcesLowResMap();
 	void recomputeYearlyBiomass();
-
+	void recomputeLowResYearlyBiomass();
+	
 	//Engine::Point2D<int> findNearestWater( const Engine::Point2D<int> & point );
-	float getBiomassVariation( bool wetSeason, Soils & cellSoil, const Engine::Point2D<int> & index ) const;
+	float getBiomassVariation( bool wetSeason, Soils cellSoil, const Engine::Point2D<int> & index, int indexWeightWaterRaster = -1 ) const;
 public:
 	GujaratWorld( Engine::Simulation & simulation, const GujaratConfig & config );
 	virtual ~GujaratWorld();
@@ -95,6 +111,46 @@ public:
 
 	SettlementAreas * getSettlementAreas() { return & _settlementAreas; }
 	const SettlementAreas* getSettlementAreas() const { return &_settlementAreas; }
+
+	void worldCell2LowResCell( Engine::Point2D<int> pos, Engine::Point2D<int> & result ) const;
+	void LowRes2HighResCellCorner(Engine::Point2D<int> pos, Engine::Point2D<int> &result ) const;
+	
+	int getLowResMapsSideSize();
+	
+	void fillLRRaster(enum Rasters idLRRaster, int val);
+	
+	void fillLowResCounterRaster(enum Rasters idRasterCounter, enum Rasters idRasterSource,int soiltype);
+	void fillLowResMeanRaster(enum Rasters idRasterCounter, enum Rasters idRasterSource);
+	
+	//! returns the value of raster "index" in global position "position"
+	int getValueLR( const int & index, const Engine::Point2D<int> & position ) const;
+	//! sets the value of raster "index" to value "value" in global position "position"
+	void setValueLR( const int & index, const Engine::Point2D<int> & position, int value );
+	//! sets the init value of raster "index" to value "value" in global position "position"
+	void setInitValueLR( const int & index, const Engine::Point2D<int> & position, int value );
+	
+	//! returns the value of raster "r" in global position "position"
+	int getValueLR( const Engine::Raster & r, const Engine::Point2D<int> & position ) const;
+	//! sets the value of raster "r" to value "value" in global position "position"
+	void setValueLR( Engine::Raster & r, const Engine::Point2D<int> & position, int value );
+	//! sets the init value of raster "r" to value "value" in global position "position"
+	void setInitValueLR( Engine::Raster & r, const Engine::Point2D<int> & position, int value );
+	
+	void ExpandLR2HRRaster(const int LRSource, const int HRTarget)
+	{
+		Engine::Point2D<int> index;
+		
+		for(index._x=_boundaries._origin._x; index._x<_boundaries._origin._x+_boundaries._size._x; index._x++)		
+		{	
+			for(index._y=_boundaries._origin._y; index._y<_boundaries._origin._y+_boundaries._size._y; index._y++)		
+			{				
+				Engine::Point2D<int> mapCell; 
+				worldCell2LowResCell(index, mapCell);
+				int v = getValueLR(LRSource,mapCell);
+				setValue(HRTarget,index,v);
+			}
+		}
+	}
 };
 
 } // namespace Gujarat

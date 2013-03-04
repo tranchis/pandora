@@ -183,10 +183,11 @@ protected:
 	void step();
 	//! applies next simulation step on the Section of the space identified by parameter 'sectionIndex'.
 	void stepSection( const int & sectionIndex );
+public:	
 	//! returns static raster identified by parameter 'key'.
 	StaticRaster & getStaticRaster( const int & index );
 	StaticRaster & getStaticRasterStr( const std::string & key );
-	
+protected:	
 	//! method interface for attribute _searchAgents. 
 	void setSearchAgents( const bool & searchAgents );
 	//! method interface for attribute _searchAgents. 
@@ -306,15 +307,16 @@ public:
 	//! the override of this method allows to modify agents between step executions
 	virtual void stepAgents();
 
+
 	//! returns raster identified by parameter 'key'.
 	Raster & getDynamicRaster( const int & index );
 	Raster & getDynamicRasterStr( const std::string & key );
 	const Raster& getConstDynamicRaster( const int & index ) const;
-
+	
 	//! create a new static raster map with the stablished size and given key
-	void registerStaticRaster( const std::string & key, const bool & serialize, int index = -1);
+	void registerStaticRaster( const std::string & key, const bool & serialize, int index = -1, Point2D<int> size = Point2D<int>(-1,-1));
 	//! create a new raster map with the stablished size and given key
-	void registerDynamicRaster( const std::string & key, const bool & serialize, int index = -1);
+	void registerDynamicRaster( const std::string & key, const bool & serialize, int index = -1, Point2D<int> size = Point2D<int>(-1,-1));
 	//! checks if position parameter 'newPosition' is free to occupy by an agent, 'newPosition' is inside of the world and the maximum of agent cell-occupancy is not exceeded.
 	bool checkPosition( const Point2D<int> & newPosition );
 
@@ -325,6 +327,9 @@ public:
 	void setValueStr( const std::string & key, const Point2D<int> & position, int value );
 	//! sets the value of raster "index" to value "value" in global position "position"
 	void setValue( const int & index, const Point2D<int> & position, int value );
+	//! sets the init value of raster "index" to value "value" in global position "position"
+	void setInitValue( const int & index, const Point2D<int> & position, int value );
+	
 	//! returns the value of raster "key" in global position "position"
 	int getValueStr( const std::string & key, const Point2D<int> & position ) const;
 	//! returns the value of raster "index" in global position "position"
@@ -359,6 +364,8 @@ public:
 	
 	// get a raster name from its index
 	const std::string & getRasterName( const int & index ) const;
+	// get a raster index from its name
+	int getRasterIndexFromName(const std::string & name) const;
 public:
 	//! Factory method design pattern for creating concrete agents and rasters. It is delegated to concrete Worlds. This method must be defined by children, it is the method where agents are created and addAgents must be called
 	virtual void createAgents() = 0;
@@ -367,6 +374,8 @@ public:
 
 	int	getCurrentTimeStep() const { return _step; }
 	double getWallTime() const;
+	
+	
 };
 
 } // namespace Engine

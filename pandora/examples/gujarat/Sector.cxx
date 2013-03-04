@@ -26,6 +26,7 @@ Sector::Sector( const Sector& other )
 
 Sector::~Sector()
 {
+	_cells.clear();
 }
 
 Engine::Point2D<int>	Sector::getNearestTo( Engine::Point2D<int> p ) const
@@ -46,8 +47,9 @@ Engine::Point2D<int>	Sector::getNearestTo( Engine::Point2D<int> p ) const
 	return nearest;
 }
 
-void	Sector::computeBiomassAmount( const Engine::Raster& r )
+void	Sector::computeBiomassAmount( const Engine::Raster & r )
 {
+	// require : rIdx is the index to a raster counter of biomass
 	_biomassAmount = 0;
 //	int maxBiomassAmount = r.getCurrentMaxValue();
 
@@ -55,9 +57,10 @@ void	Sector::computeBiomassAmount( const Engine::Raster& r )
 	// TODO refactor
 	for ( unsigned i = 0; i < _cells.size(); i++ )
 	{
-		_biomassAmount += r.getValue( _cells[i]-_world.getOverlapBoundaries()._origin );
+		_biomassAmount += ((GujaratWorld &)_world).getValueLR( r, _cells[i] );
 	}
-/*	
+
+	/*
 	double normAmount = (double)_biomassAmount;
 	if ( maxBiomassAmount > 0 )
 		normAmount /= ((double)_cells.size()*maxBiomassAmount);
@@ -72,15 +75,29 @@ void	Sector::computeBiomassAmount( const Engine::Raster& r )
 		_biomassAmountClass = BIOMASS_AMOUNT_HI;
 	*/
 }
-
-void	Sector::updateFeatures( const Engine::Raster& r )
+/*
+void	Sector::computeInterduneAmount( const enum Rasters rIdx )
 {
-	computeBiomassAmount( r ); 
+	// require : rIdx is the index to a raster counter of interdunes
+	_interduneAmount = 0;
+		
+	for ( unsigned i = 0; i < _cells.size(); i++ )
+	{
+	//	_interduneAmount += r.getValue( _cells[i]-_world.getOverlapBoundaries()._origin );
+	_interduneAmount += _world.getValue( rIdx,_cells[i] );
+	}
 }
+*/
+void Sector::updateFeatures( const Engine::Raster& r )
+{
+	computeBiomassAmount( r );
+	//computeInterduneAmount( interDuneRaster );	
+}
+
 
 void Sector::updateFeatures()
 {
-	computeBiomassAmount(_world.getConstDynamicRaster(eResources));
+	computeBiomassAmount(((GujaratWorld &)_world).getDynamicRaster(eLRResources));
 }
 /*
 std::string Sector::biomassClass() const

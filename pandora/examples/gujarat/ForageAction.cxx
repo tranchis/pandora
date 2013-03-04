@@ -48,6 +48,43 @@ std::string ForageAction::describe() const
 	return logForage.str();
 }
 
+/*
+void ForageAction::executeOLD( Engine::Agent & a )
+{
+	std::stringstream logName;
+	logName << a.getWorld()->getId() << "_" << a.getId() << "_actions";
+	log_DEBUG(logName.str(), " executing Forage action"); 
+	
+	HunterGatherer& agent = (HunterGatherer&) a;
+	
+	/*
+	 *	std::stringstream logName2;
+	 *	logName2 << "actions_" << agent.getWorld()->getId();
+	 *	log_INFO(logName2.str(), "timestep: " << agent.getWorld()->getCurrentTimeStep() << " agent: " << agent << " executes Forage with pop: " << _useFullPopulation);
+	 */
+	
+	// 1. collect nr adults
+/*	double  maxDistAgentWalk = agent.computeMaxForagingDistance( _useFullPopulation );
+	
+	// 2. select nearest cell
+	Engine::Point2D<int> nearest = _forageArea->getNearestTo( agent.getPosition() );
+	
+	// 3. execute walk
+	_biomassCollected = 0;
+	doWalk( (GujaratAgent&)a, nearest, maxDistAgentWalk, agent.getWorld()->getDynamicRaster(eResources), _biomassCollected );	
+	
+	//std::cout << "biomass collected: " << _biomassCollected << " to calories: " << agent.convertBiomassToCalories(_biomassCollected) << std::endl;
+	_caloriesCollected = agent.convertBiomassToCalories( _biomassCollected );
+	agent.updateResources( _caloriesCollected );
+	//std::cout << agent << " executing forage in zone with max: " << _forageArea->getBiomassAmount() << " collected calories: " << _caloriesCollected << " with pop: " << _useFullPopulation << " and needs: " << agent.computeConsumedResources(1) << std::endl;
+	// if not using full pop, is a movehome
+	if(_useFullPopulation)
+	{
+		agent.incrementForageActionsExecuted();
+	}
+}
+*/
+
 
 void ForageAction::execute( Engine::Agent & a )
 {
@@ -66,24 +103,39 @@ void ForageAction::execute( Engine::Agent & a )
 	// 1. collect nr adults
 	double  maxDistAgentWalk = agent.computeMaxForagingDistance( _useFullPopulation );
 		
-	// 2. select nearest cell
-	Engine::Point2D<int> nearest = _forageArea->getNearestTo( agent.getPosition() );
+	// 2. select nearest LR cell
+	// all Sectors contain the LR cell where home is located.
+	// The first nearest visited is always the same.
+	// before Engine::Point2D<int> nearest = _forageArea->getNearestTo( agent.getPosition() );
+	// now:
+	Engine::Point2D<int> nearest;
+	((GujaratWorld*)agent.getWorld())->worldCell2LowResCell( agent.getPosition(), nearest );
 
+	
 	// 3. execute walk
 	_biomassCollected = 0;
-	doWalk( (GujaratAgent&)a, nearest, maxDistAgentWalk, agent.getWorld()->getDynamicRaster(eResources), _biomassCollected );	
+	doWalk( (GujaratAgent&)a
+			, nearest
+			, maxDistAgentWalk
+			, agent.getWorld()->getDynamicRaster(eLRResources)
+			, _biomassCollected );	
 
-	//std::cout << "biomass collected: " << _biomassCollected << " to calories: " << agent.convertBiomassToCalories(_biomassCollected) << std::endl;
+	
+	//std::cout << "biomass collected: " << _biomassCollected << " to calories: " << agent.convertBiomassToCalories(_biomassCollected) << ", res: " << agent.getOnHandResources() <<std::endl;
+	
 	_caloriesCollected = agent.convertBiomassToCalories( _biomassCollected );
 	agent.updateResources( _caloriesCollected );
+	
 	//std::cout << agent << " executing forage in zone with max: " << _forageArea->getBiomassAmount() << " collected calories: " << _caloriesCollected << " with pop: " << _useFullPopulation << " and needs: " << agent.computeConsumedResources(1) << std::endl;
 	// if not using full pop, is a movehome
 	if(_useFullPopulation)
 	{
 		agent.incrementForageActionsExecuted();
 	}
+	
 }
 
+/*
 void	ForageAction::selectBestNearestCell( 	const Engine::Point2D<int>& n,
 						const Engine::Raster& r,
 						int& bestScore,
@@ -123,7 +175,220 @@ void	ForageAction::selectBestNearestCell( 	const Engine::Point2D<int>& n,
 	std::random_shuffle(candidates.begin(), candidates.end());
 	best = candidates[0];
 }
+*/
 
+void	ForageAction::selectBestNearestCell( 	const Engine::Point2D<int>& n,
+						const GujaratWorld *gw,
+						Engine::Raster& resourceRaster,
+						int explorableCells,
+						int& bestScore,
+						Engine::Point2D<int>& best ) const
+{
+	bestScore = 0;
+	std::vector< Engine::Point2D<int> > candidates;	
+	double minDist = std::numeric_limits<double>::max();
+
+	const std::vector< Engine::Point2D<int> >& sectorCells = _forageArea->cells();
+
+	for ( unsigned k = 0; k < _forageArea->numCells(); k++ )
+	{	
+		/* Rationale for score function :
+			
+			// before calling selectBest...
+			t = free time
+			tc = time to explore 1 cell
+			explorableCells = t / tc
+			
+			// computed at LRcellOutcomeHeuristic
+			n = # resource cells in area
+			r = amount of resource in cell
+			xx = expected explored cells = min(n, explorableCells) 
+			m = mean resources per cell = r/n
+			xr = expected retrieved resources =  m*xx
+			score = xr
+		*/
+			
+		int score = LRcellOutcomeHeuristic(sectorCells[k], gw, explorableCells
+										,resourceRaster);
+		
+		double dist = sectorCells[k].distance(n);
+		if ( score > bestScore )
+		{
+			bestScore = score;
+			candidates.clear();
+			candidates.push_back(sectorCells[k]);
+			minDist = dist; 
+		}
+		else if(score == bestScore)
+		{
+			if(dist<minDist)
+			{
+				candidates.clear();
+				candidates.push_back(sectorCells[k]);
+				minDist = dist;
+			}
+			else if(minDist==dist)
+			{
+				candidates.push_back(sectorCells[k]);
+			}
+		}
+	}
+	//TODO cost n, instead: best=candidates[uniformRandom(0,candidates.size()-1)]
+	std::random_shuffle(candidates.begin(), candidates.end());
+	best = candidates[0];
+	candidates.clear();	
+}
+
+
+void	ForageAction::doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0
+							, double maxDist, Engine::Raster& resourceRaster
+							, int& collected ) 
+{
+	std::stringstream logName;
+	logName << agent.getWorld()->getId() << "_" << agent.getId();
+		
+	double walkedDist         = 0.0;
+	Engine::Point2D<int> n    = n0;
+	Engine::Point2D<int> best = n0;
+	double distHome           = 0.0;
+	int bestScore             = LRcellOutcomeHeuristic(best
+										, (GujaratWorld*)agent.getWorld()
+										, (int)(agent.getAvailableTime() / agent.getForageTimeCost())
+										, resourceRaster);
+	
+	
+	do{
+		//std::cout << "walked dist: " << walkedDist << " dist home: " << distHome << " max dist: " << maxDist << " biomass collected: " << collected << " calories: " << agent.convertBiomassToCalories(collected) << std::endl;
+		
+		// 2. update walk distance
+		n                = best;
+		int cellResources = ((GujaratWorld*)agent.getWorld())->getValueLR(resourceRaster,n);
+		walkedDist       = walkedDist + best.distance(n);
+		distHome         = n0.distance(n);
+		int numInterDune = ((GujaratWorld*)agent.getWorld())->getValueLR(LRCounterSoilINTERDUNE,n);
+		int nonVisited   = numInterDune;
+		int prevActivity = ((GujaratWorld*)agent.getWorld())->getValueLR(eLRForageActivity, n );
+		int amtCollected = 0;
+
+		// Exploit LR cell, SINGLE FORMULA version       
+		// (bestScore/numInterDune)*(agent.getAvailableTime()/agent.getTimeSpentForagingTile());
+/*		int visitable     = std::min(numInterDune, (int)(agent.getAvailableTime()/agent.getTimeSpentForagingTile()));
+		int maxForage     = (bestScore * visitable) / numInterDune;
+		amtCollected  = std::min(bestScore,(int)Engine::GeneralState::statistics().getNormalDistValue(0, maxForage));       
+		walkedDist += agent.getTimeSpentForagingTile() * visitable;
+*/		
+		
+/*		log_INFO(logName.str(), "loop vars:" << walkedDist 
+									<< "," << distHome 
+									<< "," << numInterDune 
+									<< "," << nonVisited 
+									<< "," << maxDist 
+									<< "," << bestScore 
+									);	*/
+
+		while ( nonVisited > 0 && (( walkedDist + distHome ) < maxDist) )
+		{
+			amtCollected = amtCollected + std::min(cellResources, agent.computeEffectiveBiomassForaged( cellResources/numInterDune ));
+			
+			//std::cout << "collected: " << amtCollected << " from: " << bestScore << " walkeddist: " << walkedDist << " distHome: " << distHome << " maxdist: " << maxDist << std::endl;
+			walkedDist += agent.getTimeSpentForagingTile();
+
+			/*log_INFO(logName.str(), "loop vars:" << walkedDist 
+									<< "," << distHome 
+									<< "," << numInterDune 
+									<< "," << nonVisited 
+									);	*/
+			
+			nonVisited--;
+		}
+		
+		cellResources = cellResources - amtCollected;
+		collected += amtCollected;
+		((GujaratWorld*)agent.getWorld())->setValueLR(eLRForageActivity, n, prevActivity + numInterDune - nonVisited);
+		// 4. update cell resources & amount collected
+		//int prevValue = r.getValue(n - agent.getWorld()->getOverlapBoundaries()._origin); 
+		//r.setValue( n - agent.getWorld()->getOverlapBoundaries()._origin, prevValue - amtCollected );
+		((GujaratWorld*)agent.getWorld())->setValueLR(resourceRaster,n,cellResources);
+		bestScore = 0;
+		selectBestNearestCell( 	n
+								, ((GujaratWorld*)agent.getWorld())
+								, resourceRaster
+								, (int)(agent.getAvailableTime() / agent.getForageTimeCost())
+								, bestScore, best );
+//		log_INFO(logName.str(), "walkedDist:" << walkedDist << " distHome:" << distHome);	
+//		log_INFO(logName.str(), "maxDist:" << maxDist);	
+		
+	}while ( ( walkedDist + distHome ) < maxDist && (bestScore > 0));
+	
+//	std::cout << "END  ForageACtion::doWalk" << std::endl;
+}
+
+
+void	ForageAction::doWalk(const GujaratAgent& agent, const Engine::Point2D<int>& n0
+							, double maxDist, Engine::Raster& resourceRaster
+							, int& collected ) const
+{
+	double walkedDist         = 0.0;
+	Engine::Point2D<int> n    = n0;
+	Engine::Point2D<int> best = n0;
+	double distHome           = 0.0;
+	
+	int bestScore             = LRcellOutcomeHeuristic(best
+											, ((GujaratWorld*)agent.getWorld())
+											, (int)(agent.getAvailableTime() / agent.getForageTimeCost())
+											, resourceRaster);
+	
+//	std::cout << "ForageAction::doWalk const" << std::endl;
+	
+	
+	do{
+		//std::cout << "walked dist: " << walkedDist << " dist home: " << distHome << " max dist: " << maxDist << " biomass collected: " << collected << " calories: " << agent.convertBiomassToCalories(collected) << std::endl;
+		
+		// 2. update walk distance
+		n                = best;
+		int cellResources = ((GujaratWorld*)agent.getWorld())->getValueLR(resourceRaster,n);		
+		walkedDist       = walkedDist + best.distance(n);
+		distHome         = n0.distance(n);	
+		int numInterDune = ((GujaratWorld*)agent.getWorld())->getValueLR(LRCounterSoilINTERDUNE,n);
+		int nonVisited   = numInterDune;
+		int amtCollected = 0;
+		
+		// Exploit LR cell, SINGLE FORMULA version       
+		// (bestScore/numInterDune)*(agent.getAvailableTime()/agent.getTimeSpentForagingTile());
+/*		int visitable     = std::min(numInterDune, (int)(agent.getAvailableTime()/agent.getTimeSpentForagingTile()));
+		int maxForage     = (bestScore * visitable) / numInterDune;
+		amtCollected  = std::min(bestScore,(int)Engine::GeneralState::statistics().getNormalDistValue(0, maxForage));       
+		walkedDist += agent.getTimeSpentForagingTile() * visitable;
+*/		
+		
+		while ( nonVisited > 0 && (( walkedDist + distHome ) < maxDist) )
+		{
+			amtCollected = amtCollected + std::min(cellResources, agent.computeEffectiveBiomassForaged( cellResources/numInterDune ));
+			
+			//std::cout << "collected: " << amtCollected << " from: " << bestScore << " walkeddist: " << walkedDist << " distHome: " << distHome << " maxdist: " << maxDist << std::endl;
+			walkedDist += agent.getTimeSpentForagingTile();
+			nonVisited--;
+		}
+		cellResources = cellResources - amtCollected;
+		collected += amtCollected;
+		//agent.getWorld()->setValue(eLRForageActivity, n, prevActivity + numInterDune - nonVisited);
+		// 4. update cell resources & amount collected
+		//int prevValue = r.getValue(n - agent.getWorld()->getOverlapBoundaries()._origin); 
+		//r.setValue( n - agent.getWorld()->getOverlapBoundaries()._origin, prevValue - amtCollected );
+		((GujaratWorld*)agent.getWorld())->setValueLR(resourceRaster,n,cellResources);
+		bestScore = 0;
+		selectBestNearestCell( 	n
+							, ((GujaratWorld*)agent.getWorld())
+							, resourceRaster
+							, (int)(agent.getAvailableTime() / agent.getForageTimeCost())
+							, bestScore, best );
+	}while ( ( walkedDist + distHome ) < maxDist && (bestScore > 0));
+
+//	std::cout << "END const ForageACtion::doWalk" << std::endl;
+	
+}
+
+/*
 void	ForageAction::doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0, 
 				double maxDist, Engine::Raster& r, int& collected ) 
 {
@@ -134,6 +399,7 @@ void	ForageAction::doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0,
 	while ( ( walkedDist + distHome ) < maxDist )
 	{
 		//std::cout << "walked dist: " << walkedDist << " dist home: " << distHome << " max dist: " << maxDist << " biomass collected: " << collected << " calories: " << agent.convertBiomassToCalories(collected) << std::endl;
+
 		Engine::Point2D<int> best;
 		int bestScore = 0;
 		selectBestNearestCell( n, r, bestScore, best );
@@ -153,8 +419,11 @@ void	ForageAction::doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0,
 		r.setValue( n - agent.getWorld()->getOverlapBoundaries()._origin, prevValue - amtCollected );
 	}
 }
+*/
 
 
+
+/*
 void	ForageAction::doWalk( const GujaratAgent& agent, const Engine::Point2D<int>& n0, 
 				double maxDist, Engine::Raster& r, int& collected ) const
 {
@@ -180,15 +449,16 @@ void	ForageAction::doWalk( const GujaratAgent& agent, const Engine::Point2D<int>
 		r.setValue( n - agent.getWorld()->getOverlapBoundaries()._origin, prevValue - amtCollected );
 	}
 }
-
+*/
  void ForageAction::executeMDP( const GujaratAgent& agent, const HunterGathererMDPState& s, HunterGathererMDPState& sp ) const
 {
 	double  maxDist= agent.computeMaxForagingDistance(_useFullPopulation);
 		
-	Engine::Point2D<int> nearest = _forageArea->getNearestTo( s.getLocation() );
-
+	Engine::Point2D<int> nearest; 	// = _forageArea->getNearestTo( s.getLocation() );
+	((GujaratWorld*)agent.getWorld())->worldCell2LowResCell( agent.getPosition(), nearest );
+		
 	int collected = 0;
-
+	
 	doWalk( agent, nearest, maxDist, sp.getResourcesRaster(), collected );
 
 	sp.addResources( agent.convertBiomassToCalories(collected));

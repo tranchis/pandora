@@ -18,7 +18,7 @@ class HunterGathererMDPConfig;
 
 class GujaratConfig : public Engine::Config
 { 
-	int 		_size;		
+	int 			_size;		
 	std::string 	_soilFile;
 	std::string 	_demFile;
 	std::string 	_distWaterFile;
@@ -29,6 +29,8 @@ class GujaratConfig : public Engine::Config
 	// Agent home range expressed in # of underlying GIS
 	// data grid (~30m)
 	int		_homeRange;
+	// Home range expressed in low ressolution cells according to the parameter _cellsPerLowResCellSide
+	int 		_lowResHomeRange;
 	// Agents social range expressed in # GIS data grid tiles
 	int		_socialRange;
 	// # days corresponding to a climate model season	
@@ -38,6 +40,8 @@ class GujaratConfig : public Engine::Config
 	float _cellResolution;
 	// # real cells for each one in a map on low resolution
 	int _lowResolution;
+	// # real cells along the side of a Low Res Cell	
+	int _cellsPerLowResCellSide;
 	// MRJ: Hunter Gatherers attributes
 	int		_surplusForReproductionThreshold;
 	int		_surplusWanted;	
@@ -108,6 +112,7 @@ public:
 		return it->second;
 	}
 	
+	friend class HunterGatherer;
 	friend class GujaratAgent;
 	friend class GujaratWorld;
 	friend class Climate;

@@ -6,6 +6,7 @@
 #include <Raster.hxx>
 #include <vector>
 #include <iosfwd>
+#include <GujaratWorld.hxx>
 
 namespace Engine
 {
@@ -31,7 +32,7 @@ class Sector
 
 private:
 
-	void	computeBiomassAmount( const Engine::Raster& r );
+	void	computeBiomassAmount( const Engine::Raster & r );
 
 public:
 	Sector( const Engine::World & world );
@@ -72,7 +73,7 @@ public:
 
 	void	updateFeatures();
 	void	updateFeatures( const Engine::Raster& r );
-
+	
 	//void	showFeatures( std::ostream& );
 	//std::string	biomassClass() const;
 	const Engine::World & getWorld() const;

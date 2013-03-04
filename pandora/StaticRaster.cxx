@@ -158,7 +158,21 @@ void StaticRaster::updateMinMaxValues()
 			_maxValue = std::max(_maxValue, _values[i][j]);
 		}
 	}
+}	
+	
+void StaticRaster::print( std::ostream & os ) const
+{
+	for(int i=0; i<_values.size(); i++)
+	{
+		for(int j=0; j<_values[i].size(); j++)
+		{
+			os << _values[i][j] << " ";
+		}
+		os << std::endl;
+	}
+	
 }
+		
 
 } // namespace Engine
 

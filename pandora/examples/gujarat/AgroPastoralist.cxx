@@ -55,6 +55,9 @@ void AgroPastoralist::selectActions()
 			for ( unsigned i = 0; i < possibleMHActions.size(); i++ )
 				if ( possibleMHActions[i] != NULL )
 					delete possibleMHActions[i];
+				
+			possibleEPActions.clear();
+			possibleMHActions.clear();
 			return;
 		}
 
@@ -67,6 +70,8 @@ void AgroPastoralist::selectActions()
 		for ( unsigned i = 0; i < possibleEPActions.size(); i++ )
 			if ( possibleEPActions[i] != NULL )
 				delete possibleEPActions[i];
+			
+		possibleEPActions.clear();
 		return;
 	}
 

@@ -49,6 +49,7 @@ Sector* HunterGathererDecisionTreeController::getMaxBiomassSector(  HunterGather
 	
 	if(validActionSectors.empty())
 	{
+		actionSectors.clear();
 		return 0;
 	}
 
@@ -68,8 +69,11 @@ Sector* HunterGathererDecisionTreeController::getMaxBiomassSector(  HunterGather
 		if( i != maxBiomassIdx)
 			delete validActionSectors[i];
 
-	return validActionSectors.at(maxBiomassIdx);
-
+		
+	Sector* result = validActionSectors.at(maxBiomassIdx);
+	validActionSectors.clear();
+	actionSectors.clear();	
+	return result;
 }
 
 /*
@@ -136,6 +140,7 @@ MDPAction* HunterGathererDecisionTreeController::shouldMoveHome( HunterGatherer 
 		}
 	}
 	delete bestSector;
+	possibleActions.clear();
 	return chosenAction;
 }
 

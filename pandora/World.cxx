@@ -1165,7 +1165,7 @@ void World::stepAgents()
 {
 }
 
-void World::registerDynamicRaster( const std::string & key, const bool & serialize, int index )
+void World::registerDynamicRaster( const std::string & key, const bool & serialize, int index,  Engine::Point2D<int> size )
 {
 	// if no index is provided, add one at the end
 	if(index==-1)
@@ -1186,11 +1186,15 @@ void World::registerDynamicRaster( const std::string & key, const bool & seriali
 		delete _rasters.at(index);
 	}
 	_rasters.at(index) = new Raster();
-	_rasters.at(index)->resize(_overlapBoundaries._size);
+	if (size._x == -1 && size._y == -1) 
+	{ 
+		size = _overlapBoundaries._size;
+	}
+	_rasters.at(index)->resize(size);
 	_serializeRasters.at(index) = serialize;
 }
 
-void World::registerStaticRaster( const std::string & key, const bool & serialize, int index )
+void World::registerStaticRaster( const std::string & key, const bool & serialize, int index, Engine::Point2D<int> size )
 {
 	// if no index is provided, add one at the end
 	if(index==-1)
@@ -1210,7 +1214,11 @@ void World::registerStaticRaster( const std::string & key, const bool & serializ
 		delete _rasters.at(index);
 	}
 	_rasters.at(index) = new StaticRaster();
-	_rasters.at(index)->resize(_overlapBoundaries._size);
+	if (size._x == -1 && size._y == -1) 
+	{ 
+		size = _overlapBoundaries._size;
+	}
+	_rasters.at(index)->resize(size);
 	
 	_dynamicRasters.at(index) = false;
 	_serializeRasters.at(index) = serialize;
@@ -1290,6 +1298,14 @@ void World::setValue( const int & index, const Point2D<int> & position, int valu
 	Point2D<int> localPosition(position - _overlapBoundaries._origin);
 	((Raster*)_rasters.at(index))->setValue(localPosition, value);
 }
+
+
+void World::setInitValue( const int & index, const Point2D<int> & position, int value )
+{
+	Point2D<int> localPosition(position - _overlapBoundaries._origin);
+	((Raster*)_rasters.at(index))->setInitValue(localPosition, value);
+}
+
 
 int World::getValueStr( const std::string & key, const Point2D<int> & position ) const
 {
@@ -1968,6 +1984,25 @@ const std::string & World::getRasterName( const int & index) const
 	std::stringstream oss;
 	oss << "World::getRasterName - index: " << index << " doest no have a name";
 	throw Exception(oss.str());
+}
+
+
+int World::getRasterIndexFromName(const std::string & name) const
+{
+/*	if (RasterNameMap[name] < 0)
+	{
+		std::stringstream oss;
+		oss << "World::getRasterName - index: " << index << " doest no have a name";
+		throw Exception(oss.str());
+	}
+*/
+	// REQUIRE : map must contain object with key <name>, otherwise an empty object will be created 
+	// wasting space.
+
+	return _rasterNames.at(name);
+	
+	
+	
 }
 
 } // namespace Engine

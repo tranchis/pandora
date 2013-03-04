@@ -24,10 +24,26 @@ class ForageAction : public MDPAction
 	int	_caloriesCollected;
 	bool _useFullPopulation;
 
-	void selectBestNearestCell( const Engine::Point2D<int>& n, const Engine::Raster& r, int& bestScore, Engine::Point2D<int>& best ) const; 
-
-	void doWalk( const GujaratAgent& agent, const Engine::Point2D<int>& n0, double maxDist, Engine::Raster& r, int& collected ) const;
-	void doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0, double maxDist, Engine::Raster& r, int& collected );
+	void selectBestNearestCell( const Engine::Point2D<int>& n
+								, const GujaratWorld *gw
+								, Engine::Raster& resourceRaster
+								, int explorableCells
+								, int& bestScore
+								, Engine::Point2D<int>& best ) const;
+											
+			
+	void doWalk( const GujaratAgent& agent
+				, const Engine::Point2D<int>& n0
+				, double maxDist
+				, Engine::Raster& resourceRaster
+				, int& collected ) const;
+	
+	void doWalk( GujaratAgent& agent
+				, const Engine::Point2D<int>& n0
+				, double maxDist
+				, Engine::Raster& resourceRaster
+				, int& collected );
+	
 
 public:
 	ForageAction( Sector* loc, bool ownsPointer = false );
@@ -46,6 +62,29 @@ public:
 	
 	void setFullPopulation( bool useFullPopulation );
 	const Sector & getSector() const {return *_forageArea;}
+
+	int LRcellOutcomeHeuristic( Engine::Point2D<int> kCell2D
+								, const Gujarat::GujaratWorld * gw
+								, int explorableCells
+								, const Engine::Raster& resRaster) const
+	{
+		long   n                          = gw->getValueLR(LRCounterSoilINTERDUNE,kCell2D);
+		int    res                        = gw->getValueLR(resRaster,kCell2D);
+		float  meanRes                    = ((float)res) / ((float)n);
+		int    expectedExploredCells      = std::min((int)n,explorableCells);
+		float  expectedRetrievedResources = meanRes * expectedExploredCells;		
+		int    score                      = expectedRetrievedResources;
+	/*std::cout << "score heuristic:" << n 
+					<< "," << res
+					<< "," << meanRes
+					<< "," << expectedExploredCells
+					<< "," << expectedRetrievedResources
+					<< "," << score << std::endl;*/
+	
+	return score;
+	}
+	
+	
 };
 
 }

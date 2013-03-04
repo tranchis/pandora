@@ -76,7 +76,34 @@ void GujaratConfig::extractParticularAttribs(TiXmlElement * root)
 	retrieveAttributeMandatory( element, "adulthoodAge", _adulthoodAge );	
 	
 	retrieveAttributeMandatory( element, "numSectors", _numSectors );
-	GujaratState::initializeSectorsMask(_numSectors, _homeRange);
+	
+	retrieveAttributeMandatory( element, "cellsPerLowResCellSide", _cellsPerLowResCellSide );
+
+	// Generate a sector mask of lowrescells for the lowresmap the would overlap the original sector mask.
+	// The difference of areas between both sectors must be minimized. 
+	int r_down    = _homeRange / _cellsPerLowResCellSide;
+	int r_up      = 1 + r_down;
+	int loss_down = abs(_homeRange*_homeRange 
+						- 
+						r_down*r_down*_cellsPerLowResCellSide*_cellsPerLowResCellSide); 
+	int loss_up   = abs(_homeRange*_homeRange 
+						- 
+						r_up*r_up*_cellsPerLowResCellSide*_cellsPerLowResCellSide); 
+	
+	if (loss_down > loss_up)
+	{
+		_lowResHomeRange = r_up;
+	}
+	else
+	{
+		_lowResHomeRange = r_down;
+	}
+	
+	GujaratState::initializeSectorsMask(_numSectors, _lowResHomeRange);
+	
+	//TODO static attribute for class HunterGatherer : sector mask instance
+	
+	//GujaratState::initializeSectorsMask(_numSectors, _homeRange);
 
 	retrieveAttributeMandatory( element, "walkingSpeedHour", _walkingSpeedHour );
 	retrieveAttributeMandatory( element, "forageTimeCost", _forageTimeCost );

@@ -58,6 +58,8 @@ void HunterGathererProgrammedController::selectActions( GujaratAgent & agent, st
 		}
 		actions.push_back(selectedAction);
 		// TODO move/forage
+		
+		possibleActions.clear();
 	}
 }
 

@@ -41,7 +41,7 @@ protected:
 	int _socialRange; // MpiBasicAttribute
 
 	int _homeMobilityRange; // MpiBasicAttribute
-
+	
 	float _massToCaloriesRate; // MpiBasicAttribute
 	//float _surplusSpoilageFactor;
 	

@@ -40,7 +40,8 @@ void	HunterGathererMDPModel::reset( GujaratAgent & agent )
 	_simAgent = dynamic_cast<HunterGatherer *>(&agent);
 
 	// Build initial state from current state in the simulation
-	_initial = new HunterGathererMDPState(	agentRef().getPosition(), agentRef().getOnHandResources(), agentRef().getWorld()->getDynamicRaster(eResources), _config.getHorizon(), agentRef().computeConsumedResources(1));
+	//_initial = new HunterGathererMDPState(	agentRef().getPosition(), agentRef().getOnHandResources(), agentRef().getWorld()->getDynamicRaster(eResources), _config.getHorizon(), agentRef().computeConsumedResources(1));
+	_initial = new HunterGathererMDPState(	agentRef().getPosition(), agentRef().getOnHandResources(), agentRef().getWorld()->getDynamicRaster(eLRResources), _config.getHorizon(), agentRef().computeConsumedResources(1));
 	makeActionsForState( *_initial );
 	//std::cout << "Initial state: " << *_initial << std::endl;	
 }
@@ -159,6 +160,11 @@ void	HunterGathererMDPModel::makeActionsForState( HunterGathererMDPState& s ) co
 	}
 	assert( s.numAvailableActions() > 0 );
 	//std::cout << "finished creating actions for state with time index: " << s.getTimeIndex() << " and resources: " << s.getOnHandResources() << std::endl;
+
+	validActionSectors.clear();
+	actionSectors.clear();
+	possibleMoveHomeActions.clear();
+	
 } 
 
 }

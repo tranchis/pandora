@@ -23,6 +23,8 @@
 #ifndef __StaticRaster_hxx__
 #define __StaticRaster_hxx__
 
+
+#include <sstream>
 #include <Point2D.hxx>
 #include <vector>
 
@@ -35,7 +37,7 @@ class RasterLoader;
 class StaticRaster
 {
 protected:
-	std::vector< std::vector<int> >_values;
+	std::vector< std::vector<int> > _values;
 
 	int _minValue;
 	int _maxValue;
@@ -64,6 +66,18 @@ public:
 	void updateMinMaxValues();
 	
 	friend class RasterLoader;
+	
+	//std::vector< std::vector<int> >& getValues() { return _values; }
+	
+	void print( std::ostream& os ) const;
+	
+	friend std::ostream& operator<<( std::ostream& os, const StaticRaster & r )
+	{
+		r.print(os);
+		return os;	
+	}
+
+	
 }; 
 
 } // namespace Engine

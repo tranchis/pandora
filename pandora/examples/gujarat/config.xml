@@ -2,13 +2,15 @@
 <config>  
 	<!-- Global simulation parameters -->
 	<output resultsFile="./data/gujarat.h5" logsDir="./logs"/>
-	<numSteps value="1"/>
+	<numSteps value="360"/>
 	<!-- g to KJ -->
 	<massToEnergyRate value="20" />
 	<!-- 1 KCal = 4.184 KJ, Conversion Rate = 1/4.184 -->
 	<energyToCaloriesRate value="0.239006" />
 	<!-- Global agent parameters !-->
 	<socialRange value="299" />
+	<!-- The horinzontal and vertical length of a LowRes Cell in World Cells !-->
+	<cellsPerLowResCellSide value="160" />
 	<!-- Simulation time scale -->
 	<daysPerSeason value="120" />
 	<daysPerYear value="360" />
@@ -41,6 +43,7 @@
 		num="100" homeRange="299"	
 		adulthoodAge="15"
 		numSectors="8"
+		cellsPerLowResCellSide="160"
 		walkingSpeedHour="3000"
 		forageTimeCost="0.5"
 		demographicsModel="original"
@@ -86,4 +89,16 @@
 	<storeRaster name="consecutiveYears" value="no" />
 	<storeRaster name="sectors" value="no" />
 	<storeRaster name="duneMap" value="no" />
+	<!-- LowRes Raster storage options -->
+	<storeRaster name="eLRResources" value="no" />
+	<storeRaster name="eLRResourcesFraction" value="no" />
+	<storeRaster name="eLRForageActivity" value="no" />
+	<storeRaster name="eLRHomeActivity" value="no" />
+	<storeRaster name="eLRFarmingActivity" value="no" />
+	<storeRaster name="eLRMoisture" value="no" />
+	<storeRaster name="eLRPopulation" value="no" />
+	<storeRaster name="eLRWeightWater" value="no" />
+	<storeRaster name="LRCounterSoilDUNE" value="no" />
+	<storeRaster name="LRCounterSoilINTERDUNE" value="no" />
+	<storeRaster name="LRCounterSoilWATER" value="no" />
 </config>

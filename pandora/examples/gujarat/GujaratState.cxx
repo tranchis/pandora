@@ -282,10 +282,64 @@ int GujaratState::sectorsMask( int i, int j)
 	}
 	return instance()._sectorsMask.at(i).at(j);
 }
+/*
+void GujaratState::initializeSectorsMask( int numSectors, int homeRange )
+{
+	
+/*	
+	posa la sectormask feta a mà
+	with trigonometry :
+	***5***
+	*66554*
+	*76544*
+	000*333
+	*00123*
+	*01122*
+	***1***
+	handmade:
+	***6***
+	*77665*
+	*07655*
+	000*444
+	*11234*
+	*12233*
+	***2***
+	
+*/	
+/*
+int m[7][7] = {
+	{-1,-1,-1, 6,-1,-1,-1},
+	{-1, 7, 7, 6, 6, 5,-1},
+	{-1, 0, 7, 6, 5, 5,-1},
+	{ 0, 0, 0,-1, 4, 4, 4},
+	{-1, 1, 1, 2, 3, 4,-1},
+	{-1, 1, 2, 2, 3, 3,-1},
+	{-1,-1,-1, 2,-1,-1,-1}
+	};
+	
+	
+	instance()._sectorsMask.resize( 1+2*homeRange );
+	for ( unsigned k = 0; k < 1+2*homeRange; k++ )
+	{
+		instance()._sectorsMask.at(k).resize( 1+2*homeRange );
+	}
+	
+	
+	for ( int x=-homeRange; x<=homeRange; x++ )
+	{
+		for ( int y=-homeRange; y<=homeRange; y++ )
+		{
+			instance()._sectorsMask.at(x+homeRange).at(y+homeRange) = m[x+homeRange][y+homeRange];
+		}
+	}
+	
+}	
+*/
+
 
 void GujaratState::initializeSectorsMask( int numSectors, int homeRange )
 {
-	std::vector< std::vector< Engine::Point2D<int> > > sectors;
+	std::vector< std::vector< Engine::Point2D<float> > > sectors;
 	
 	float alpha = 360/numSectors;
 	alpha = alpha * M_PI/180.0f;
@@ -300,15 +354,24 @@ void GujaratState::initializeSectorsMask( int numSectors, int homeRange )
 		instance()._sectorsMask.at(k).resize( 1+2*homeRange );
 	}
 
-	b._x = 0;
-	b._y = - homeRange;
+	b._x = 0.0f;
+	b._y = (float)(-homeRange)*100.0f;
 
 	for(int i=0; i<numSectors; i++)
 	{
-		c._x = b._x*std::cos(alpha) - b._y*std::sin(alpha);
-		c._y = b._x*std::sin(alpha) + b._y*std::cos(alpha);
-		sectors.at(i).push_back( Engine::Point2D<int>( (int)b._x, (int)b._y ) );
-		sectors.at(i).push_back( Engine::Point2D<int>( (int)c._x, (int)c._y ) );
+		c._x = (b._x*std::cos(alpha) - b._y*std::sin(alpha));
+		c._y = (b._x*std::sin(alpha) + b._y*std::cos(alpha));
+		if (std::abs(c._x) < 0.25) 
+		{
+			c._x = 0.0;
+		}
+		if (std::abs(c._y) < 0.25) 
+		{
+			c._y = 0.0;
+		}		
+		sectors.at(i).push_back( Engine::Point2D<float>( b._x, b._y ) );
+		sectors.at(i).push_back( Engine::Point2D<float>( c._x, c._y ) );
+		std::cout << b << "->" << c << std::endl;
 		b = c;
 	}
 
@@ -320,19 +383,29 @@ void GujaratState::initializeSectorsMask( int numSectors, int homeRange )
 			{
 				continue;
 			}
-			Engine::Point2D<int> p( x, y );
+			
+			Engine::Point2D<float> p( (float)x*100.0f, (float)y*100.0f );
 			instance()._sectorsMask.at(x+homeRange).at(y+homeRange) = -1;	
 			for ( unsigned k = 0; k < numSectors; k++ )
 			{
 				if ( Engine::insideTriangle( p, sectors.at(k).at(0), sectors.at(k).at(1) ) )
 				{
 					instance()._sectorsMask.at(x+homeRange).at(y+homeRange) = k;
+					
+					std::cout << "(" << x+homeRange << "," << y+homeRange << ") at sector " << k << std::endl;
+					
 					break;
 				}
 			}
+			
 		}
 	}
-
+	
+	for ( unsigned k = 0; k < numSectors; k++ )
+	{
+		sectors.at(k).clear();
+	}
+	sectors.clear();
 }
 
 } // namespace Gujarat 

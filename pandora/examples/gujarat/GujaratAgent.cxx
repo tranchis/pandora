@@ -34,8 +34,7 @@ int	GujaratAgent::convertBiomassToCalories( int biomass ) const
 
 int	GujaratAgent::computeEffectiveBiomassForaged( int nominal ) const
 {
-	return Engine::GeneralState::statistics().getNormalDistValue(0, nominal);
-	
+	return Engine::GeneralState::statistics().getNormalDistValue(0, nominal);	
 }
 
 void GujaratAgent::updateKnowledge()
@@ -80,18 +79,19 @@ void GujaratAgent::updateState()
 	std::stringstream logName;
 	logName << "agents_" << _world->getId() << "_" << getId();
 
-	log_DEBUG( logName.str(), "\tagent.collectedResourcesAfterAction=" << getOnHandResources());
+	
+	//log_DEBUG( logName.str(), "\tagent.collectedResourcesAfterAction=" << getOnHandResources());
 	int surplus = _collectedResources - computeConsumedResources(1);
-	log_DEBUG( logName.str(), "\tagent.collectedResourcesAfterConsumption=" << surplus);
+	//log_DEBUG( logName.str(), "\tagent.collectedResourcesAfterConsumption=" << surplus);
 	if ( surplus < 0 )
 	{
 		_starved += 1.0f-((float)_collectedResources/(float)(computeConsumedResources(1)));
 		//_emigrationProbability += 1.0f/(float)(((GujaratWorld*)_world)->getConfig()._daysPerSeason);
-		log_DEBUG( logName.str(),  "\tagent.isStarving=yes");
+		//log_DEBUG( logName.str(),  "\tagent.isStarving=yes");
 	}
 	else
 	{
-		log_DEBUG( logName.str(), "\tagent.isStarving=no");
+		//log_DEBUG( logName.str(), "\tagent.isStarving=no");
 		//_reproductionProbability += 1.0/(float)(3*((GujaratWorld*)_world)->getConfig()._daysPerSeason);
 		// Decay factor, modeling spoilage
 		//_collectedResources *= getSurplusSpoilageFactor();
@@ -120,16 +120,16 @@ void GujaratAgent::updateState()
 		checkMarriage();
 		checkAgentRemoval();
 		int numChildren = 0;
-		std::cout << "agent: " << this << " with male : " << _populationAges.at(0) << " female: " << _populationAges.at(1) << " -- children: ";
+		//std::cout << "agent: " << this << " with male : " << _populationAges.at(0) << " female: " << _populationAges.at(1) << " -- children: ";
 		for(int i=2; i<_populationAges.size(); i++)
 		{
 			if(_populationAges.at(i)!=-1)
 			{
 				numChildren++;
-				std::cout << "[" << i << "]=" << _populationAges.at(i) << " - ";
+				//std::cout << "[" << i << "]=" << _populationAges.at(i) << " - ";
 			}
 		}
-		std::cout << " total: " << numChildren << std::endl;
+		//std::cout << " total: " << numChildren << std::endl;
 		_starved = 0;
 	}
 }
@@ -217,7 +217,10 @@ GujaratAgent * GujaratAgent::getMarriageCandidate()
 		return 0;
 	}
 	std::random_shuffle(possible.begin(), possible.end());
-	return (GujaratAgent*)(possible.at(0));
+	GujaratAgent * result = (GujaratAgent*)(possible.at(0));
+	possible.clear();
+	neighbors.clear();
+	return result;
 }
 
 void GujaratAgent::checkMarriage()
@@ -251,7 +254,7 @@ void GujaratAgent::checkMarriage()
 			// location inside home range of husband family
 			_world->addAgent(newAgent);
 			newAgent->setPosition(getNearLocation(getSocialRange()));
-			std::cout << "new agent created: " << newAgent << " with husband age: " << newAgent->_populationAges[0] << " and wife age: " << newAgent->_populationAges[1] << std::endl;
+			//std::cout << "new agent created: " << newAgent << " with husband age: " << newAgent->_populationAges[0] << " and wife age: " << newAgent->_populationAges[1] << std::endl;
 		}
 	}
 }
@@ -279,7 +282,9 @@ Engine::Point2D<int> GujaratAgent::getNearLocation( int range )
 		return Engine::Point2D<int>(-1,-1);
 	}
 	std::random_shuffle(possiblePositions.begin(), possiblePositions.end());
-	return possiblePositions[0];
+	Engine::Point2D<int> result = possiblePositions[0];
+	possiblePositions.clear();
+	return result;
 }
 
 
@@ -371,6 +376,7 @@ void	GujaratAgent::initializePosition( )
 	*/
 	unsigned die2 = Engine::GeneralState::statistics().getUniformDistValue(0, dunes.size()-1);
 	setPosition( dunes[die2] );
+	dunes.clear();
 }
 
 int	GujaratAgent::getNrAvailableAdults() const
@@ -510,15 +516,15 @@ void GujaratAgent::createInitialPopulation( int adulthoodAge )
 			}
 		}
 	}
-	std::cout << "init pop for agent: " << this << std::endl;
+	//std::cout << "init pop for agent: " << this << std::endl;
 	for(int i=0; i<_populationAges.size(); i++)
 	{
 		if(_populationAges.at(i)!=-1)
 		{
-			std::cout << "individual: " << i << " age: " << _populationAges.at(i) << std::endl;
+			//std::cout << "individual: " << i << " age: " << _populationAges.at(i) << std::endl;
 		}
 	}
-	std::cout << "end init pop for agent: " << this << std::endl;
+	//std::cout << "end init pop for agent: " << this << std::endl;
 }
 	
 float GujaratAgent::getPercentageOfStarvingDays() const

@@ -15,8 +15,8 @@ class HunterGatherer : public GujaratAgent
 	//int 					_surplusWanted;
 	int 					_homeRange; // MpiBasicAttribute
 	int 					_numSectors; // MpiBasicAttribute
-
-	void updateKnowledge();
+	int						_lowResHomeRange; // MpiBasicAttribute
+	//void updateKnowledge();
 
 	// this method checks whether P1 and P2 are in the same side of the line that goes from B to C
 	bool sameSide( Engine::Point2D<int> P1, Engine::Point2D<int> P2, Engine::Point2D<int> A, Engine::Point2D<int> B );
@@ -36,6 +36,8 @@ public:
 	int  getHomeRange() const { return _homeRange; }
 	void setNumSectors( int v ) { _numSectors = v; }
 	int  getNumSectors() const { return _numSectors; }
+	void setLowResHomeRange(int v) { _lowResHomeRange = v; }
+	int getLowResHomeRange() const { return _lowResHomeRange; }
 	const std::vector<Sector *> & getSectors() const { return _sectors; }
 
 	//void setSurplusForReproductionThreshold( int v ) { _surplusForReproductionThreshold = v; }
@@ -46,8 +48,9 @@ public:
 //	bool needsResources(int timeSteps);
 //	bool needsResources();
 
-	void		updateResources( int v ) { _collectedResources += v; }
-	void		updateKnowledge( 	const Engine::Point2D<int>& agentPos, const Engine::Raster& dataRaster, std::vector< Sector* >& sectors )const;
+	void updateResources( int v ) { _collectedResources += v; }
+	void updateKnowledge();
+	void updateKnowledge( 	const Engine::Point2D<int>& agentPos, const Engine::Raster& dataRaster, std::vector< Sector* >& sectors )const;
 	
 	void serialize();
 	void registerAttributes();
