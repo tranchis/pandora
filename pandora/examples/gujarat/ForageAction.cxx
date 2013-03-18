@@ -320,6 +320,7 @@ void	ForageAction::doWalk( GujaratAgent& agent, const Engine::Point2D<int>& n0
 		
 	}while ( ( walkedDist + distHome ) < maxDist && (bestScore > 0));
 	
+	
 //	std::cout << "END  ForageACtion::doWalk" << std::endl;
 }
 

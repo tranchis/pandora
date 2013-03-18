@@ -341,6 +341,8 @@ void GujaratState::initializeSectorsMask( int numSectors, int homeRange )
 {
 	std::vector< std::vector< Engine::Point2D<float> > > sectors;
 	
+	//homeRange++;
+	
 	float alpha = 360/numSectors;
 	alpha = alpha * M_PI/180.0f;
 	Engine::Point2D<float> b;
