@@ -2,7 +2,7 @@
 #ifndef __GujaratState_hxx__
 #define __GujaratState_hxx__
 
-
+#include <cstdlib>
 #include <string>
 #include <GeneralState.hxx>
 #include <Point2D.hxx>
@@ -33,7 +33,8 @@ private:
 
 	static GujaratDemographics * _demographics;
 
-	SectorsMask _sectorsMask;
+	SectorsMask _HRSectorsMask;
+	SectorsMask _LRSectorsMask;
 
 protected:
 	GujaratState();
@@ -55,8 +56,18 @@ public:
 	static void setHGController( const std::string & type, const HunterGathererMDPConfig & config );
 	static AgentController & controller();
 
-	static void initializeSectorsMask( int numSectors, int homeRange );
-	static int sectorsMask( int i, int j );
+	static void initializeSectorsMask( int numSectors, int homeRange, SectorsMask & sm );
+	//static int sectorsMask( int i, int j);
+	static int sectorsMask( int i, int j, const SectorsMask & sm );
+	static SectorsMask & getHRSectorsMask() { return instance()._HRSectorsMask; }
+	static SectorsMask & getLRSectorsMask() { return instance()._LRSectorsMask; }
+	
+	//*****************************************************************************
+	//*?
+	
+	static float Point2Angle(float ex, float ey);
+	static float getAngle(int i, int j, int homeRange);
+	
 };
 
 } // namespace Gujarat

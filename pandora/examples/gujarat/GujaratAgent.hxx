@@ -120,7 +120,8 @@ public:
 	void logAgentState();
 	void updateKnowledge();
 	void updateState();
-
+	virtual void clearSectorKnowledge() = 0;
+	
 	// this method sets the population of the agent to a reasonable starting point
 	// in particular, both parents will have ages between 15 and 50
 	// taking into account the minimum age of parents a set of children is generated following the rules of the system

@@ -12,6 +12,9 @@
 #include <GeneralState.hxx>
 #include <Logger.hxx>
 
+#include <GujaratConfig.hxx>
+
+
 namespace Gujarat
 {
 
@@ -44,112 +47,181 @@ void HunterGatherer::registerAttributes()
 
 HunterGatherer::~HunterGatherer()
 {
-	for ( unsigned k = 0; k < _sectors.size(); k++ )
+	for ( unsigned k = 0; k < _HRSectors.size(); k++ )
 	{
-		delete _sectors[k];
+		_HRSectors[k]->clearCells();
+		delete _HRSectors[k];
 	}
-}
-
-void HunterGatherer::updateKnowledge( const Engine::Point2D<int>& agentPos, const Engine::Raster& dataRaster, std::vector<Sector*>& sectors ) const
-{
-	for ( unsigned k = 0; k < _numSectors; k++ )
+	for ( unsigned k = 0; k < _LRSectors.size(); k++ )
 	{
-		sectors.push_back( new Sector(*getWorld()) );
-	}
-
-	for ( int x=-_homeRange; x<=_homeRange; x++ )
-	{
-		for ( int y=-_homeRange; y<=_homeRange; y++ )
-		{
-			int indexSector = GujaratState::sectorsMask(x+_homeRange,y+_homeRange);
-			if ( indexSector == - 1 )
-			{
-				continue;
-			}
-
-			Engine::Point2D<int> p;
-			p._x = agentPos._x + x;
-			p._y = agentPos._y + y;
-			if ( !_world->getOverlapBoundaries().isInside(p) )
-			{
-				continue;
-			}
-			sectors[indexSector]->addCell( p );
-		}
-	}
-
-	for ( unsigned k = 0; k < _numSectors; k++ )
-	{
-		sectors[k]->updateFeatures(dataRaster);
-	}
+		_LRSectors[k]->clearCells();
+		delete _LRSectors[k];
+	}	
+	
+	_HRSectors.clear();
+	_LRSectors.clear();
 }
 
 void HunterGatherer::updateKnowledge()
-{
-	// H/G can't preserve resources
-	//std::cout << "collected from last time: " << _collectedResources << " surplus: " << _collectedResources - computeConsumedResources(1);
-	//_collectedResources -= computeConsumedResources(1);
-	//_collectedResources *= getSurplusSpoilageFactor();
-
-	//std::cout << " spoiled: " << _collectedResources << " needed resources: " << computeConsumedResources(1) <<  std::endl;
-	_collectedResources = 0;
+{	
+	_collectedResources = 0;	
 	std::stringstream logName;
 	logName << "agents_" << _world->getId() << "_" << getId();
+	
+	// updateKnowledge  _HRsectors ???
+	// _HRsectors contain only Point2D referencing HR cells in HR raster of resources,
+	// so there are no utility attribs to update.
+	
+	// updateKnowledge  _LRsectors
+	//updateKnowledge( _position, getWorld()->getDynamicRaster(eLRResources), _LRSectors);
+	
+	//if (_HRSectors.size()==0 && _LRSectors.size()==0) return;
+	
+	updateKnowledge( _position, getWorld()->getDynamicRaster(eLRResources), _HRSectors ,_LRSectors);	
+	
+	//*?	
+	/*
+	std::cout << "MSG> BIOMASS_AMOUNT:";
+	for(int se=0; se<_HRSectors.size();se++)
+		std::cout << " " << se << ":" << _HRSectors[se]->getBiomassAmount();
+	std::cout << std::endl;
+	
+	std::cout << "MSG> BIOMASS_AMOUNT:";
+	for(int se=0; se<_LRSectors.size();se++)
+		std::cout << " " << se << ":" << _LRSectors[se]->getBiomassAmount();
+	std::cout << std::endl;
+	*/
+	
+	
+}
 
-	log_DEBUG(logName.str(), "update knowledge");
-	// sectors not initialized
-	log_DEBUG(logName.str(), "new sectors");
-	if(_sectors.size()==0)
+void	HunterGatherer::updateKnowledge( 	const Engine::Point2D<int>& agentPos, const Engine::Raster& dataRaster, std::vector< Sector* >& HRSectors, std::vector< Sector* >& LRSectors  ) const
+{		
+	
+	GujaratWorld * gw = (GujaratWorld*)_world;
+	
+	if(HRSectors.size()==0)
 	{
-		_sectors.resize(_numSectors);
+		HRSectors.resize(_numSectors);	
 		for ( unsigned k = 0; k < _numSectors; k++ )
 		{
-			_sectors[k] = new Sector( getWorldRef());
+			HRSectors[k] = new Sector(*gw);
 		}
-	}
-	else
-	{
-		for ( unsigned k = 0; k < _numSectors; k++ )
+		
+		for ( int x=-_homeRange; x<=_homeRange; x++ )
 		{
-			//std::cout << this << "clearing sector: " << k << std::endl;
-			_sectors[k]->clearCells();
-			//std::cout << "DONE!" <<  std::endl;
+			for ( int y=-_homeRange; y<=_homeRange; y++ )
+			{
+				
+				int indexSector = GujaratState::sectorsMask(x+_homeRange,y+_homeRange,GujaratState::getHRSectorsMask());
+				if ( indexSector == - 1 )
+				{
+					continue;
+				}
+			
+				Engine::Point2D<int> p;
+				p._x = agentPos._x + x;
+				p._y = agentPos._y + y;
+				// TODO overlapboundaries
+				if ( !_world->getBoundaries().isInside(p) )
+				{
+					continue;
+				}
+				HRSectors[indexSector]->addCell( p );
+				//getWorld()->setValue( "sectors", p, 1 );	
+			}
 		}
 	}
 	
-	log_DEBUG(logName.str(), "create sectors with home range: " << _homeRange);
-	for ( int x=-_homeRange; x<=_homeRange; x++ )
+	
+	
+	
+//********** LR	
+	if(LRSectors.size()==0)
 	{
-		for ( int y=-_homeRange; y<=_homeRange; y++ )
-		{
-			int indexSector = GujaratState::sectorsMask(x+_homeRange,y+_homeRange);
-			if ( indexSector == - 1 )
-			{
-				continue;
-			}
-
-			Engine::Point2D<int> p;
-			p._x = _position._x + x;
-			p._y = _position._y + y;
-			// TODO overlapboundaries
-			if ( !_world->getBoundaries().isInside(p) )
-			{
-				continue;
-			}
-			_sectors[indexSector]->addCell( p );
-			//getWorld()->setValue( "sectors", p, 1 );
+		LRSectors.resize(_numSectors);
+		for ( unsigned k = 0; k < _numSectors; k++ )
+		{			
+			LRSectors[k] = new Sector(*gw);	
 		}
+	
+		//std::cout << "**********************" << std::endl;
+	
+		//TODO Those low resolution calculi should be arranged by the GujaratWorld class
+		register int C = ((GujaratConfig)((GujaratWorld*)_world)->getConfig())._lowResolution;
+		Engine::Point2D<int> LRpos;
+		((GujaratWorld*)_world)->worldCell2LowResCell( agentPos, LRpos );
+		for ( int x=-_lowResHomeRange; x<=_lowResHomeRange; x++ )
+		{
+			for ( int y=-_lowResHomeRange; y<=_lowResHomeRange; y++ )
+			{				
+				//*?
+				if (x==0 && y==0)
+				{
+					continue;
+				}
+				
+				int indexSector = GujaratState::sectorsMask(x+_lowResHomeRange,y+_lowResHomeRange,GujaratState::getLRSectorsMask());
+			
+				if ( indexSector == - 1 )
+				{
+					continue;
+				}			
+			
+				//std::cout << "CELL:"<< x << "," << y << " at " << indexSector << std::endl;
+			
+				Engine::Point2D<int> LRxycell(x+LRpos._x,y+LRpos._y);
+			
+				Engine::Point2D<int> corners[4]; // 4 corners that bound the world cells belonging to the low res cell
+				corners[0]._x = LRxycell._x*C;
+				corners[0]._y = LRxycell._y*C;
+				corners[1]._x = LRxycell._x*C;
+				corners[1]._y = LRxycell._y*C + C-1;
+				corners[2]._x = LRxycell._x*C + C-1;
+				corners[2]._y = LRxycell._y*C;
+				corners[3]._x = LRxycell._x*C + C-1;
+				corners[3]._y = LRxycell._y*C + C-1;
+			
+				// All four corners of the low res cell must be in the boundaries
+			
+				if(	!_world->getOverlapBoundaries().isInside(corners[0]) ||
+					!_world->getOverlapBoundaries().isInside(corners[1]) ||
+					!_world->getOverlapBoundaries().isInside(corners[2]) ||
+					!_world->getOverlapBoundaries().isInside(corners[3]))	
+				{
+					continue;
+				}
+			
+				LRSectors[indexSector]->addCell( LRxycell );
+			
+			}//for
+		}//for
+		
+		for ( unsigned k = 0; k < _numSectors; k++ )
+		{
+			LRSectors[k]->addCell( LRpos );
+		}	
 	}
-	log_DEBUG(logName.str(), "update features");
-
 	for ( unsigned k = 0; k < _numSectors; k++ )
 	{
-		//std::cout << "Sector #" << (k+1) << " features:" << std::endl;
-		_sectors[k]->updateFeatures();
-		//_sectors[k]->showFeatures( std::cout );
+		LRSectors[k]->updateFeaturesLR(dataRaster);
 	}
-	log_DEBUG(logName.str(), "end update knowledge");
 }
+
+void HunterGatherer::clearSectorKnowledge() 
+	{ 
+		for ( unsigned i = 0; i < _numSectors; i++ )
+		{
+			delete _HRSectors[i]; 
+		}		
+		_HRSectors.clear(); 
+		
+		for ( unsigned i = 0; i < _numSectors; i++ )
+		{
+			delete _LRSectors[i]; 
+		}		
+		_LRSectors.clear(); 
+	}
 
 void HunterGatherer::selectActions()
 {
@@ -174,6 +246,8 @@ GujaratAgent * HunterGatherer::createNewAgent()
 	agent->setSocialRange( _socialRange );
 	agent->setHomeMobilityRange( _homeMobilityRange );
 	agent->setHomeRange( _homeRange );
+	agent->setLowResHomeRange( _lowResHomeRange );
+	
 	//agent->setSurplusForReproductionThreshold( _surplusForReproductionThreshold );
 	//agent->setSurplusWanted( _surplusWanted );
 	//agent->setSurplusSpoilageFactor( _surplusSpoilageFactor );
@@ -183,7 +257,7 @@ GujaratAgent * HunterGatherer::createNewAgent()
 	agent->setForageTimeCost( _forageTimeCost );
 	//agent->setAvailableForageTime( _availableForageTime );
 	agent->setMassToCaloriesRate( _massToCaloriesRate );
-	agent->setNumSectors( _sectors.size() );
+	agent->setNumSectors( ((GujaratConfig)((GujaratWorld*)_world)->getConfig())._numSectors );
 	
 	// initially the agent will be a couple
 	agent->_populationAges.resize(2);
@@ -206,6 +280,7 @@ bool HunterGatherer::cellValid( Engine::Point2D<int>& loc )
 	std::vector<Agent * > agents = _world->getAgent(loc);
 	if(agents.size()==0)
 	{
+		agents.clear();
 		return true;
 	}
 
@@ -214,9 +289,11 @@ bool HunterGatherer::cellValid( Engine::Point2D<int>& loc )
 		Agent * agent = agents.at(i);
 		if(agent->exists() && agent!=this)
 		{
+			agents.clear();
 			return false;
 		}
 	}
+	agents.clear();
 	return true;
 }
 

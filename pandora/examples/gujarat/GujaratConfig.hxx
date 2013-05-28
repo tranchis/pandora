@@ -10,6 +10,7 @@
 #include <vector>
 //#include <CaloricRequirementsTable.hxx>
 
+
 namespace Gujarat
 {
 
@@ -18,7 +19,7 @@ class HunterGathererMDPConfig;
 
 class GujaratConfig : public Engine::Config
 { 
-	int 		_size;		
+	int 			_size;		
 	std::string 	_soilFile;
 	std::string 	_demFile;
 	std::string 	_distWaterFile;
@@ -29,6 +30,8 @@ class GujaratConfig : public Engine::Config
 	// Agent home range expressed in # of underlying GIS
 	// data grid (~30m)
 	int		_homeRange;
+	// Home range expressed in low ressolution cells according to the parameter _cellsPerLowResCellSide
+	int 		_lowResHomeRange;
 	// Agents social range expressed in # GIS data grid tiles
 	int		_socialRange;
 	// # days corresponding to a climate model season	
@@ -108,6 +111,8 @@ public:
 		return it->second;
 	}
 	
+	
+	friend class HunterGatherer;
 	friend class GujaratAgent;
 	friend class GujaratWorld;
 	friend class Climate;
