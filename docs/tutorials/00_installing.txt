@@ -48,14 +48,14 @@ Ubuntu dependencies forces you to install the serial version of HDF5 as grass de
 		$ cd ~/
 		$ mkdir hdf5
 		$ cd hdf5
-		$ wget "http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.10-patch1.tar.bz2"
+		$ wget "http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.10/src/hdf5-1.8.10.tar.bz2"
 
 	* Unzip the file:
-		$ tar jxvf hdf5-1.8.10-patch1.tar.bz2
+		$ tar jxvf hdf5-1.8.11.tar.bz2
 
 	* configure the library:
 		$ cd hdf5-1.8.10-patch1
-		$ ./configure --enable-parallel --prefix=/usr/local/hdf5 --disable-shared --with-pic
+		$ ./configure --enable-parallel --prefix=/usr/local/hdf5 --with-pic --enable-parallel --disable-shared --enable-static --disable-hl
 		(if you want more information type ./configure --help)
 
 	* compile and install:

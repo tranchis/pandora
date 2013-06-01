@@ -13,7 +13,7 @@ else:
 
 env.VariantDir('build', '.')
 
-libs = Split('pthread gdal hdf5 z tinyxml grass_gis boost_filesystem boost_system gomp')
+libs = Split('dl pthread gdal hdf5 z tinyxml grass_gis boost_filesystem boost_system gomp')
 #if int(useMpi) == 1:
 #	libs += ['mpich']
 
@@ -52,8 +52,8 @@ if int(mareNostrum)==1:
 	libDirs += ['/apps/BOOST/1_52_0/lib/']
 	libDirs += ['/apps/GRASS/6.4.3RC2/grass-6.4.3RC2/lib/']
 else:
-	includeDirs = Split('. analysis/ /usr/local/include /usr/local/hdf5/include /usr/lib/grass64/include/ /usr/include/gdal/')
-	libDirs = Split('. /usr/local/lib /usr/local/hdf5/lib/ /usr/lib/grass64/lib/')
+	includeDirs = Split('. /usr/local/hdf5/include /usr/lib/grass64/include /analysis/ /usr/local/include /usr/include/gdal/')
+	libDirs = Split('. /usr/local/hdf5/lib/ /usr/lib/grass64/lib/ /usr/lib /usr/local/lib')
 	libs += ['mpl']
 
 env.SharedLibrary(libraryName, srcBaseFiles, CPPPATH=includeDirs, LIBS=libs, LIBPATH=libDirs)
